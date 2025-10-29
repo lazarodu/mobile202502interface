@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import MapView, { Marker, Polyline, Region } from 'react-native-maps';
-import { Text, View } from 'react-native';
+import { Alert, Text, View } from 'react-native';
 import { styles } from './styles'
 import * as Location from "expo-location";
 import { colors } from '../../styles/colors';
@@ -19,9 +19,9 @@ export function LocationMap() {
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
   const [destination, setDestination] = useState<Region | null>({
     latitude: -21.5715146,
-        longitude: -45.4520052,
-        latitudeDelta: 0.004,
-        longitudeDelta: 0.004
+    longitude: -45.4520052,
+    latitudeDelta: 0.004,
+    longitudeDelta: 0.004
   })
   const mapRef = useRef<MapView>(null)
 
@@ -100,7 +100,12 @@ export function LocationMap() {
             onPress={handleDestination}
           /> */}
           <MapView style={styles.map} region={region}
-            showsUserLocation={true} ref={mapRef}
+            showsUserLocation={true} ref={mapRef} onPress={(i) => setDestination({
+              latitude: i.nativeEvent.coordinate.latitude,
+              longitude: i.nativeEvent.coordinate.longitude,
+              latitudeDelta: 0.004,
+              longitudeDelta: 0.004
+            })}
           >
             {marker &&
               marker.map((item) => (
