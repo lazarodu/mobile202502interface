@@ -5,9 +5,12 @@ import { FindVinylRecord } from '../domain/use-cases/FindVinylRecord';
 import { RegisterVinylRecord } from '../domain/use-cases/RegisterVinylRecord';
 import { UpdateVinylRecord } from '../domain/use-cases/UpdateVinylRecord';
 import { MockVinylRecordRepository } from '../infra/repositories/MockVinylRecordRepository';
+import { SupabaseVinylRepository } from '../infra/repositories/supabaseVinylRepository';
 
 export function makeVinylRecordUseCases() {
-  const vinylRecordRepository: IVinylRecordRepository = MockVinylRecordRepository.getInstance();
+  const vinylRecordRepository: IVinylRecordRepository = process.env.EXPO_PUBLIC_USE_API
+    ? SupabaseVinylRepository.getInstance()
+    : MockVinylRecordRepository.getInstance();
 
   const registerVinylRecord = new RegisterVinylRecord(vinylRecordRepository);
   const updateVinylRecord = new UpdateVinylRecord(vinylRecordRepository);

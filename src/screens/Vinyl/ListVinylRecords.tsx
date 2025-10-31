@@ -3,6 +3,7 @@ import {
   StyleSheet,
   Text,
   View,
+  Image
 } from "react-native";
 import { ComponentButtonInterface, ComponentLoading } from "../../components";
 import { VinylRecordTypes } from "../../navigations/VinylRecordStackNavigation";
@@ -38,14 +39,16 @@ export function ListVinylRecordsScreen({ navigation }: VinylRecordTypes) {
     }
   }, [isFocused]);
 
-  const renderItem = ({ item }: { item: VinylRecord }) => (
+  const renderItem = ({ item }: { item: VinylRecord }) => {
+    console.log(item.photo)
+    return(
     <View style={styles.itemContainer}>
       <Text style={styles.itemTitle}>
         {item.band.value} - {item.album.value}
       </Text>
       <ComponentButtonInterface title="detalhes" type="primary" onPress={() => navigation.navigate("VinylRecordDetails", { record: item })} />
     </View>
-  );
+  );}
 
   return (
     <View style={styles.container}>
