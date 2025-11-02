@@ -7,7 +7,6 @@ import { ComponentButtonInterface, ComponentLoading } from '../../components';
 import { makeVinylRecordUseCases } from '../../core/factories/makeVinylRecordUseCases';
 import { VinylRecordTypes } from '../../navigations/VinylRecordStackNavigation';
 import { useAuth } from '../../context/auth';
-import { supabase } from '../../core/infra/supabase/client/supabaseClient';
 
 export function RegisterVinylRecordScreen({ navigation }: VinylRecordTypes) {
   const [band, setBand] = useState('');
@@ -51,44 +50,6 @@ export function RegisterVinylRecordScreen({ navigation }: VinylRecordTypes) {
     }
   }
 
-  async function uploadImage(): Promise<string> {
-    if (!user) throw new Error("User not authenticated for upload");
-    if (!imageAsset) throw new Error("Selecione uma imagem");
-    const fileExt = imageAsset?.uri.split('.').pop();
-    const fileName = `${user.id}_${Date.now()}.${fileExt}`;
-    // Convert base64 to ArrayBuffer for Supabase upload in React Native
-    try {
-      // const response = await fetch(`data:image/${fileExt};base64,${imageAsset?.base64}`);
-      // const blob = await response.blob();
-      const formData = new FormData();
-        formData.append('file', {
-        uri: imageAsset.uri,
-        name: imageAsset.fileName || `photo_${Date.now()}.jpg`, // Tenta pegar o nome, senão gera um
-        type: imageAsset.mimeType ?? 'image/jpeg', // Tenta pegar o tipo, senão usa um padrão
-      } as unknown as Blob);
-
-      const { error: uploadError } = await supabase.storage
-        .from('vinyl-photos')
-        .upload(`public/${fileName}`, formData);
-
-      if (uploadError) {
-        throw new Error(`Failed to upload image: ${uploadError.message}`);
-      }
-    } catch (error) {
-      console.log(error, 'aqui')
-    }
-
-    const { data: urlData } = supabase.storage
-      .from('vinyl-photos')
-      .getPublicUrl(fileName);
-
-    if (!urlData) {
-      throw new Error('Failed to get public URL for the image.');
-    }
-
-    return urlData.publicUrl;
-  }
-
   async function handleRegister() {
     setLoading(true);
     setError(null);
@@ -104,7 +65,12 @@ export function RegisterVinylRecordScreen({ navigation }: VinylRecordTypes) {
     }
 
     try {
-      const uploadedPhotoUrl = await uploadImage();
+      if (!user) throw new Error("User not authenticated for upload");
+      if (!imageAsset) throw new Error("Selecione uma imagem");
+      
+      const uploadedPhotoUrl = await vinylRecordUseCases.uploadFile.execute({
+        imageAsset, bucket: 'photos', userId: user.id
+      })
 
       await vinylRecordUseCases.registerVinylRecord.execute({
         band,
@@ -185,7 +151,7 @@ export function RegisterVinylRecordScreen({ navigation }: VinylRecordTypes) {
   );
 }
 
-const localStyles = StyleSheet.create({
+export const localStyles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",

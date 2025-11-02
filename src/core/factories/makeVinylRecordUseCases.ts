@@ -7,6 +7,10 @@ import { UpdateVinylRecord } from '../domain/use-cases/UpdateVinylRecord';
 import { MockVinylRecordRepository } from '../infra/repositories/MockVinylRecordRepository';
 import { SupabaseVinylRepository } from '../infra/repositories/supabaseVinylRepository';
 
+import {UploadFileUseCase} from "../domain/use-cases/UploadFile"
+import {DeleteFileUseCase} from "../domain/use-cases/DeleteFile"
+import {SupabaseStorageService} from "../infra/supabase/storage/storageService"
+
 export function makeVinylRecordUseCases() {
   const vinylRecordRepository: IVinylRecordRepository = process.env.EXPO_PUBLIC_USE_API
     ? SupabaseVinylRepository.getInstance()
@@ -18,11 +22,18 @@ export function makeVinylRecordUseCases() {
   const findVinylRecord = new FindVinylRecord(vinylRecordRepository);
   const findAllVinylRecords = new FindAllVinylRecords(vinylRecordRepository);
 
+  const supabaseStorageRepository = new SupabaseStorageService
+  const uploadFile = new UploadFileUseCase(supabaseStorageRepository)
+  const deleteFile = new DeleteFileUseCase(supabaseStorageRepository)
+
   return {
     registerVinylRecord,
     updateVinylRecord,
     deleteVinylRecord,
     findVinylRecord,
     findAllVinylRecords,
+
+    uploadFile,
+    deleteFile
   };
 }

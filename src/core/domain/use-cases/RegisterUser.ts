@@ -22,7 +22,7 @@ export class RegisterUser {
     if (userExists) {
       throw new Error('User already exists');
     }
-console.log(password)
+
     const user = User.create(
       '', // ID is empty, to be filled by repository
       Name.create(name),

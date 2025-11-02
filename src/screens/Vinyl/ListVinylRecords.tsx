@@ -40,7 +40,6 @@ export function ListVinylRecordsScreen({ navigation }: VinylRecordTypes) {
   }, [isFocused]);
 
   const renderItem = ({ item }: { item: VinylRecord }) => {
-    console.log(item.photo)
     return(
     <View style={styles.itemContainer}>
       <Text style={styles.itemTitle}>

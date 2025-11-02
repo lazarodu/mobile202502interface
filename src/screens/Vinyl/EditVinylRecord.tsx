@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { KeyboardAvoidingView, View, Text, TextInput, Alert, Platform } from 'react-native';
+import { KeyboardAvoidingView, View, Text, TextInput, Alert, Platform, Image } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { styles } from '../Register/styles';
 import { colors } from '../../styles/colors';
@@ -7,10 +7,14 @@ import { ComponentButtonInterface, ComponentLoading } from '../../components';
 import { makeVinylRecordUseCases } from '../../core/factories/makeVinylRecordUseCases';
 import { VinylRecord } from '../../core/domain/entities/VinylRecord';
 import { VinylRecordTypes } from '../../navigations/VinylRecordStackNavigation';
+import { localStyles } from './RegisterVinylRecord';
+import * as ImagePicker from 'expo-image-picker';
+import { useAuth } from '../../context/auth';
 
 export function EditVinylRecordScreen({ navigation }: VinylRecordTypes) {
   const route = useRoute();
   const { record } = route.params as { record: VinylRecord };
+  const [imageAsset, setImageAsset] = useState<ImagePicker.ImagePickerAsset | null>(null);
 
   const [band, setBand] = useState(record.band.value);
   const [album, setAlbum] = useState(record.album.value);
@@ -20,25 +24,73 @@ export function EditVinylRecordScreen({ navigation }: VinylRecordTypes) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const vinylRecordUseCases = makeVinylRecordUseCases();
+  const { user } = useAuth();
 
   async function handleUpdate() {
     setLoading(true);
     setError(null);
     try {
-      await vinylRecordUseCases.updateVinylRecord.execute({
-        id: record.id,
-        band,
-        album,
-        year: parseInt(year, 10),
-        numberOfTracks: parseInt(numberOfTracks, 10),
-        photoUrl,
-      });
+      if (!user) throw new Error("User not authenticated for upload");
+      if (imageAsset) {
+        const uploadedPhotoUrl = await vinylRecordUseCases.uploadFile.execute({
+          imageAsset, bucket: 'photos', userId: user.id
+        })
+        await vinylRecordUseCases.updateVinylRecord.execute({
+          id: record.id,
+          band,
+          album,
+          year: parseInt(year, 10),
+          numberOfTracks: parseInt(numberOfTracks, 10),
+          photoUrl: uploadedPhotoUrl,
+        });
+      } else {
+        await vinylRecordUseCases.updateVinylRecord.execute({
+          id: record.id,
+          band,
+          album,
+          year: parseInt(year, 10),
+          numberOfTracks: parseInt(numberOfTracks, 10),
+          photoUrl,
+        });
+      }
+
       Alert.alert('Success', 'Vinyl record updated successfully');
       navigation.navigate('ListVinylRecords');
     } catch (err) {
       setError('Failed to update vinyl record');
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function pickImage() {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.7,
+    });
+
+    if (!result.canceled) {
+      setImageAsset(result.assets[0]);
+    }
+  }
+
+  async function takePhoto() {
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+    if (permissionResult.granted === false) {
+      Alert.alert("You've refused to allow this app to access your camera!");
+      return;
+    }
+
+    let result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.7,
+    });
+
+    if (!result.canceled) {
+      setImageAsset(result.assets[0]);
     }
   }
 
@@ -84,15 +136,13 @@ export function EditVinylRecordScreen({ navigation }: VinylRecordTypes) {
             onChangeText={setNumberOfTracks}
           />
         </View>
-        <View style={styles.formRow}>
-          <TextInput
-            placeholderTextColor={colors.third}
-            style={styles.input}
-            placeholder="Photo URL"
-            value={photoUrl}
-            onChangeText={setPhotoUrl}
-          />
+
+        {imageAsset && <Image source={{ uri: imageAsset.uri }} style={localStyles.imagePreview} />}
+        <View style={localStyles.photoButtonsContainer}>
+          <ComponentButtonInterface title='Take Photo' type='third' onPress={takePhoto} />
+          <ComponentButtonInterface title='Pick Image' type='third' onPress={pickImage} />
         </View>
+
         {loading ? (
           <ComponentLoading />
         ) : (

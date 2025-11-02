@@ -1,4 +1,4 @@
-import { Alert, StyleSheet, Text, View } from "react-native";
+import { Alert, Image, StyleSheet, Text, View } from "react-native";
 import { useRoute } from "@react-navigation/native";
 import { ComponentButtonInterface } from "../../components";
 import { VinylRecord } from "../../core/domain/entities/VinylRecord";
@@ -24,6 +24,9 @@ export function VinylRecordDetailsScreen({ navigation }: VinylRecordTypes) {
                 onPress: async () => {
                     try {
                         await vinylRecordUseCases.deleteVinylRecord.execute({ id: record.id });
+                        const segments = record.photo.url.split('/');
+                        console.log(segments.pop() || '')
+                        await vinylRecordUseCases.deleteFile.execute({bucket: 'photos', path: segments.pop() || ''})
                         Alert.alert("Success", "Record deleted successfully");
                         navigation.navigate("ListVinylRecords");
                     } catch (error) {
@@ -36,6 +39,7 @@ export function VinylRecordDetailsScreen({ navigation }: VinylRecordTypes) {
 
     return (
         <View style={styles.container}>
+            <Image source={{ uri: record.photo.url }} style={styles.imagePreview} />
             <Text>Vinyl Record Details</Text>
             <Text>Band: {record.band.value}</Text>
             <Text>Album: {record.album.value}</Text>
@@ -71,5 +75,12 @@ export const styles = StyleSheet.create({
     },
     contentRow: {
         flexDirection: "row"
-    }
+    },
+    imagePreview: {
+        width: 200,
+        height: 200,
+        alignSelf: 'center',
+        marginVertical: 10,
+        borderRadius: 10,
+    },
 })
