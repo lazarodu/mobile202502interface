@@ -6,13 +6,12 @@ import { LogoutUser } from '../domain/use-cases/LogoutUser';
 import { RegisterUser } from '../domain/use-cases/RegisterUser';
 import { UpdateUser } from '../domain/use-cases/UpdateUser';
 import { MockUserRepository } from '../infra/repositories/MockUserRepository';
-import {SupabaseUserRepository} from '../infra/repositories/supabaseUserRepository'
+import { HybridUserRepository } from '../infra/repositories/HybridUserRepository';
 
 export function makeUserUseCases() {
-  // const userRepository: IUserRepository = MockUserRepository.getInstance();
-const userRepository = process.env.EXPO_PUBLIC_USE_API
-  ? SupabaseUserRepository.getInstance()
-  : MockUserRepository.getInstance()
+  const userRepository: IUserRepository = process.env.EXPO_PUBLIC_USE_API
+    ? HybridUserRepository.getInstance()
+    : MockUserRepository.getInstance();
 
   const registerUser = new RegisterUser(userRepository);
   const loginUser = new LoginUser(userRepository);

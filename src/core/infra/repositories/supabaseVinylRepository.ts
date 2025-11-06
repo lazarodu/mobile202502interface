@@ -18,8 +18,7 @@ export class SupabaseVinylRepository implements IVinylRecordRepository {
 
   async save(record: VinylRecord): Promise<void> {
     const { error } = await supabase.from('vinyl').insert({
-      // The 'id' field is omitted, assuming the database will generate it (e.g., as a UUID).
-      // The ID from the record object (record.id) is ignored because it's a temporary one.
+      id: record.id,
       band: record.band.value,
       album: record.album.value,
       year: record.year,

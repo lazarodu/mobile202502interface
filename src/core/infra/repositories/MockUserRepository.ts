@@ -68,6 +68,10 @@ export class MockUserRepository implements IUserRepository {
     this.users = this.users.filter(user => user.id !== id);
   }
 
+  async findAll(): Promise<User[]> {
+    return this.users;
+  }
+
   public reset(): void {
     this.users = [];
   }

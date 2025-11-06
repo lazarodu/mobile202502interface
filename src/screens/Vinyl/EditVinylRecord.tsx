@@ -30,34 +30,24 @@ export function EditVinylRecordScreen({ navigation }: VinylRecordTypes) {
     setLoading(true);
     setError(null);
     try {
-      if (!user) throw new Error("User not authenticated for upload");
-      if (imageAsset) {
-        const uploadedPhotoUrl = await vinylRecordUseCases.uploadFile.execute({
-          imageAsset, bucket: 'photos', userId: user.id
-        })
-        await vinylRecordUseCases.updateVinylRecord.execute({
-          id: record.id,
-          band,
-          album,
-          year: parseInt(year, 10),
-          numberOfTracks: parseInt(numberOfTracks, 10),
-          photoUrl: uploadedPhotoUrl,
-        });
-      } else {
-        await vinylRecordUseCases.updateVinylRecord.execute({
-          id: record.id,
-          band,
-          album,
-          year: parseInt(year, 10),
-          numberOfTracks: parseInt(numberOfTracks, 10),
-          photoUrl,
-        });
-      }
+      // If a new image was picked, its URI is the new photoUrl.
+      // Otherwise, we keep the existing one.
+      const newPhotoUrl = imageAsset ? imageAsset.uri : photoUrl;
 
-      Alert.alert('Success', 'Vinyl record updated successfully');
+      await vinylRecordUseCases.updateVinylRecord.execute({
+        id: record.id,
+        band,
+        album,
+        year: parseInt(year, 10),
+        numberOfTracks: parseInt(numberOfTracks, 10),
+        photoUrl: newPhotoUrl,
+      });
+
+      Alert.alert('Success', 'Vinyl record updated locally. It will be synced when online.');
       navigation.navigate('ListVinylRecords');
     } catch (err) {
       setError('Failed to update vinyl record');
+      console.error(err);
     } finally {
       setLoading(false);
     }

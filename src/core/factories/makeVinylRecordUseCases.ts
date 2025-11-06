@@ -5,7 +5,7 @@ import { FindVinylRecord } from '../domain/use-cases/FindVinylRecord';
 import { RegisterVinylRecord } from '../domain/use-cases/RegisterVinylRecord';
 import { UpdateVinylRecord } from '../domain/use-cases/UpdateVinylRecord';
 import { MockVinylRecordRepository } from '../infra/repositories/MockVinylRecordRepository';
-import { SupabaseVinylRepository } from '../infra/repositories/supabaseVinylRepository';
+import { HybridVinylRecordRepository } from '../infra/repositories/HybridVinylRecordRepository';
 
 import {UploadFileUseCase} from "../domain/use-cases/UploadFile"
 import {DeleteFileUseCase} from "../domain/use-cases/DeleteFile"
@@ -13,7 +13,7 @@ import {SupabaseStorageService} from "../infra/supabase/storage/storageService"
 
 export function makeVinylRecordUseCases() {
   const vinylRecordRepository: IVinylRecordRepository = process.env.EXPO_PUBLIC_USE_API
-    ? SupabaseVinylRepository.getInstance()
+    ? HybridVinylRecordRepository.getInstance()
     : MockVinylRecordRepository.getInstance();
 
   const registerVinylRecord = new RegisterVinylRecord(vinylRecordRepository);

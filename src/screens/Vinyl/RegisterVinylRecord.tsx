@@ -65,25 +65,21 @@ export function RegisterVinylRecordScreen({ navigation }: VinylRecordTypes) {
     }
 
     try {
-      if (!user) throw new Error("User not authenticated for upload");
-      if (!imageAsset) throw new Error("Selecione uma imagem");
-      
-      const uploadedPhotoUrl = await vinylRecordUseCases.uploadFile.execute({
-        imageAsset, bucket: 'photos', userId: user.id
-      })
+      // The photoUrl is now the local file URI
+      const photoUrl = imageAsset.uri;
 
       await vinylRecordUseCases.registerVinylRecord.execute({
         band,
         album,
         year: parseInt(year, 10),
         numberOfTracks: parseInt(numberOfTracks, 10),
-        photoUrl: uploadedPhotoUrl,
+        photoUrl: photoUrl, // Pass the local URI
         ownerId: user.id,
       });
-      Alert.alert('Success', 'Vinyl record registered successfully');
+      Alert.alert('Success', 'Vinyl record saved locally. It will be synced when online.');
       navigation.navigate('ListVinylRecords');
     } catch (err) {
-      setError('Failed to register vinyl record');
+      setError('Failed to save vinyl record locally');
       console.error(err);
     } finally {
       setLoading(false);

@@ -154,4 +154,25 @@ export class SupabaseUserRepository implements IUserRepository {
     }
     console.warn("User profile deleted, but the auth user was not. This requires an admin call.");
   }
+
+  async findAll(): Promise<User[]> {
+    const { data, error } = await supabase.from('user').select('*');
+
+    if (error) {
+      throw new Error(error.message);
+    }
+    if (!data) {
+        return [];
+    }
+
+    return data.map(item =>
+      User.create(
+        item.id,
+        Name.create(item.name),
+        Email.create(item.email),
+        Password.create('hashed_123'),
+        GeoCoordinates.create(item.latitude, item.longitude)
+      )
+    );
+  }
 }
